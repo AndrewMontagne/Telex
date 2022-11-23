@@ -1,0 +1,15 @@
+[package]
+name = "telex"
+version = "0.0.1"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.release]
+opt-level = 3       # Optimize for speed.
+
+[dependencies]
+chrono = "0.4.23"
+lazy_static = "1.4.0"
+regex = "1.7.0"
+simple-error = "0.2.3"
