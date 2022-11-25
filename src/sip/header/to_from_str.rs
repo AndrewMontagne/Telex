@@ -2,6 +2,8 @@ use core::fmt;
 
 use simple_error::{bail, SimpleError};
 
+use crate::strlit;
+
 use super::Header;
 
 impl Header {
@@ -14,19 +16,19 @@ impl Header {
             "allow" => Ok(Header::Allow),
             "authentication-info" => Ok(Header::AuthenticationInfo),
             "authorization" => Ok(Header::Authorization),
-            "call-id" => Ok(Header::CallID),
+            "call-id" | "i" => Ok(Header::CallID),
             "call-info" => Ok(Header::CallInfo),
-            "contact" => Ok(Header::Contact),
+            "contact" | "m" => Ok(Header::Contact),
             "content-disposition" => Ok(Header::ContentDisposition),
-            "content-encoding" => Ok(Header::ContentEncoding),
+            "content-encoding" | "e" => Ok(Header::ContentEncoding),
             "content-language" => Ok(Header::ContentLanguage),
-            "content-length" => Ok(Header::ContentLength),
-            "content-type" => Ok(Header::ContentType),
+            "content-length" | "l" => Ok(Header::ContentLength),
+            "content-type" | "c" => Ok(Header::ContentType),
             "cseq" => Ok(Header::CSeq),
             "date" => Ok(Header::Date),
             "error-info" => Ok(Header::ErrorInfo),
             "expires" => Ok(Header::Expires),
-            "from" => Ok(Header::From),
+            "from" | "f" => Ok(Header::From),
             "in-reply-to" => Ok(Header::InReplyTo),
             "max-forwards" => Ok(Header::MaxForwards),
             "mime-version" => Ok(Header::MIMEVersion),
@@ -42,16 +44,36 @@ impl Header {
             "retry-after" => Ok(Header::RetryAfter),
             "route" => Ok(Header::Route),
             "server" => Ok(Header::Server),
-            "subject" => Ok(Header::Subject),
+            "subject" | "s" => Ok(Header::Subject),
             "supported" => Ok(Header::Supported),
             "timestamp" => Ok(Header::Timestamp),
-            "to" => Ok(Header::To),
+            "to" | "t" => Ok(Header::To),
             "unsupported" => Ok(Header::Unsupported),
             "user-agent" => Ok(Header::UserAgent),
-            "via" => Ok(Header::Via),
+            "via" | "k" => Ok(Header::Via),
             "warning" => Ok(Header::Warning),
             "www-authenticate" => Ok(Header::WWWAuthenticate),
             _ => bail!("Bad Header: {}", string),
+        }
+    }
+
+    pub fn canonical_string(&self, compact: bool) -> String {
+        if compact {
+            match self {
+                Header::CallID => strlit!("i"),
+                Header::Contact => strlit!("m"),
+                Header::ContentEncoding => strlit!("e"),
+                Header::ContentLength => strlit!("l"),
+                Header::ContentType => strlit!("c"),
+                Header::From => strlit!("f"),
+                Header::Subject => strlit!("s"),
+                Header::Supported => strlit!("k"),
+                Header::To => strlit!("t"),
+                Header::Via => strlit!("v"),
+                _ => self.to_string(),
+            }
+        } else {
+            self.to_string()
         }
     }
 }
@@ -91,7 +113,7 @@ impl fmt::Display for Header {
             Header::RecordRoute => write!(f, "Record-Route"),
             Header::ReplyTo => write!(f, "Reply-To"),
             Header::Require => write!(f, "Require"),
-            Header::RetryAfter => write!(f, "RetryAfter"),
+            Header::RetryAfter => write!(f, "Retry-After"),
             Header::Route => write!(f, "Route"),
             Header::Server => write!(f, "Server"),
             Header::Subject => write!(f, "Subject"),

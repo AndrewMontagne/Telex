@@ -2,7 +2,11 @@ use std::{collections::HashMap, fmt};
 
 use simple_error::SimpleError;
 
+use crate::strlit;
+
 use super::{header::Header, request::Request};
+
+pub mod status;
 
 pub struct Response {
     pub status: String,
@@ -14,7 +18,7 @@ impl fmt::Display for Response {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         _ = write!(f, "SIP/2.0 {}\r\n", self.status);
         for (key, value) in &self.headers {
-            _ = write!(f, "{}: {}\r\n", key, value);
+            _ = write!(f, "{}: {}\r\n", key.canonical_string(true), value);
         }
         if let Some(body) = &self.body {
             _ = write!(f, "\r\n{}\r\n", body);
@@ -33,10 +37,11 @@ impl Response {
         };
         response.set_header(Header::Date, Header::generate(Header::Date))?;
         response.set_header(Header::Server, Header::generate(Header::Server))?;
+        response.set_header(Header::Server, Header::generate(Header::Allow))?;
         if let Some(body) = body {
             response.set_body(body)?;
         } else {
-            response.set_header(Header::ContentLength, "0".to_string())?;
+            response.set_header(Header::ContentLength, strlit!("0"))?;
         }
 
         Ok(response)

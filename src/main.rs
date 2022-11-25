@@ -6,6 +6,7 @@ use std::thread;
 use log::{info, LevelFilter};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 
+mod helpers;
 mod sip;
 
 fn main() {
