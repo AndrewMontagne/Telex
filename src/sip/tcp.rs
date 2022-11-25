@@ -6,7 +6,7 @@ use std::{
 
 use log::error;
 
-use super::{handler::handle_request, request::SipRequest};
+use super::{handler::handle_request, request::Request};
 
 pub fn listen() {
     let listener = TcpListener::bind("[::]:5060").unwrap();
@@ -21,7 +21,7 @@ pub fn listen() {
 
 fn handle_connection(mut stream: TcpStream) {
     loop {
-        let request = SipRequest::from_stream(&mut &stream);
+        let request = Request::from_stream(&mut &stream);
         let response = handle_request(request);
         if let Ok(response) = response {
             let result = stream.write_all(response.to_string().as_bytes());

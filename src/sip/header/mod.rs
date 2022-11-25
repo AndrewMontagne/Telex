@@ -3,7 +3,7 @@ pub mod to_from_str;
 pub mod validate;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub enum SipHeader {
+pub enum Header {
     Accept,
     AcceptEncoding,
     AcceptLanguage,

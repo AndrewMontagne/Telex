@@ -1,8 +1,8 @@
 use simple_error::{bail, SimpleError};
 
-use super::SipHeader;
+use super::Header;
 
-impl SipHeader {
+impl Header {
     pub fn validate(&self, value: &String) -> Result<(), SimpleError> {
         match self {
             Self::Expires | Self::ContentLength | Self::MaxForwards => validate_integer(value),

@@ -1,6 +1,5 @@
 #![warn(clippy::pedantic)]
 #![warn(clippy::style)]
-#![allow(clippy::module_name_repetitions)]
 
 use std::thread;
 

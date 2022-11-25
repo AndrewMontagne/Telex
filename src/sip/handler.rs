@@ -1,41 +1,39 @@
 use log::{error, info, trace};
 use simple_error::SimpleError;
 
-use crate::sip::{header::SipHeader, response::SipResponse};
+use crate::sip::{header::Header, response::Response};
 
-use super::request::{method::SipMethod, SipRequest};
+use super::request::{method::Method, Request};
 
-pub fn handle_request(
-    request: Result<SipRequest, SimpleError>,
-) -> Result<SipResponse, SimpleError> {
+pub fn handle_request(request: Result<Request, SimpleError>) -> Result<Response, SimpleError> {
     if let Ok(request) = request {
         info!("{} Request", request.method);
-        if matches!(request.method, SipMethod::Register) {
+        if matches!(request.method, Method::Register) {
             trace!("{}", request);
 
-            let mut response = SipResponse::new("401 Unauthorized".to_string(), None)?;
+            let mut response = Response::new("401 Unauthorized".to_string(), None)?;
 
-            response.copy_header_from_request(SipHeader::CSeq, &request)?;
-            response.copy_header_from_request(SipHeader::From, &request)?;
-            response.copy_header_from_request(SipHeader::To, &request)?;
-            response.copy_header_from_request(SipHeader::CallID, &request)?;
-            response.copy_header_from_request(SipHeader::Via, &request)?;
+            response.copy_header_from_request(Header::CSeq, &request)?;
+            response.copy_header_from_request(Header::From, &request)?;
+            response.copy_header_from_request(Header::To, &request)?;
+            response.copy_header_from_request(Header::CallID, &request)?;
+            response.copy_header_from_request(Header::Via, &request)?;
             response.set_header(
-                SipHeader::WWWAuthenticate,
+                Header::WWWAuthenticate,
                 "Digest algorithm=MD5, realm=\"telex\", nonce=\"23fd5627\"".to_string(),
             )?;
             response.set_header(
-                SipHeader::Allow,
+                Header::Allow,
                 "REGISTER, INVITE, ACK, CANCEL, OPTIONS, BYE".to_string(),
             )?;
 
             trace!("{}", response);
             Ok(response)
         } else {
-            Ok(SipResponse::new("501 Not Implemented".to_string(), None)?)
+            Ok(Response::new("501 Not Implemented".to_string(), None)?)
         }
     } else {
         error!("REQUEST ERROR: {}", request.err().unwrap());
-        Ok(SipResponse::new("400 Bad Request".to_string(), None)?)
+        Ok(Response::new("400 Bad Request".to_string(), None)?)
     }
 }

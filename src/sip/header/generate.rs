@@ -1,8 +1,8 @@
 use chrono::Utc;
 
-use super::SipHeader;
+use super::Header;
 
-impl SipHeader {
+impl Header {
     pub fn generate(self) -> String {
         match self {
             Self::Date => Utc::now().to_rfc2822(),

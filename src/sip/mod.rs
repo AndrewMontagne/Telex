@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 pub mod handler;
 pub mod header;
 pub mod request;

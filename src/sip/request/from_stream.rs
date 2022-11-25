@@ -6,19 +6,19 @@ use std::{
     io::{BufRead, BufReader, Read},
 };
 
-use crate::sip::header::SipHeader;
+use crate::sip::header::Header;
 
-use super::{SipMethod, SipRequest};
+use super::{Method, Request};
 
 lazy_static! {
     static ref REQUEST_LINE_REGEX: Regex = Regex::new(r"^([A-Z]+) (.+) SIP.2.0$").unwrap();
     static ref CONTENT_LENGTH_REGEX: Regex = Regex::new(r"^([\w\-]+):\s+(.+)$").unwrap();
 }
 
-impl SipRequest {
-    pub fn from_stream(data: &mut impl Read) -> Result<SipRequest, SimpleError> {
+impl Request {
+    pub fn from_stream(data: &mut impl Read) -> Result<Request, SimpleError> {
         let mut buf_reader = BufReader::new(data);
-        let mut headers: HashMap<SipHeader, String> = HashMap::new();
+        let mut headers: HashMap<Header, String> = HashMap::new();
         let mut body = None;
 
         // Ignore blank lines leading up to the request
@@ -39,7 +39,7 @@ impl SipRequest {
             Some(matc) => matc.as_str().to_string(),
             None => bail!("SANITY: Couldn't get the method from the request line"),
         };
-        let method = match SipMethod::from_string(&method_str) {
+        let method = match Method::from_string(&method_str) {
             Ok(method) => method,
             Err(e) => return Err(e),
         };
@@ -69,7 +69,7 @@ impl SipRequest {
                 None => bail!("Bad Header Line: {}", line),
             };
             let header = match re_captures.get(1) {
-                Some(matc) => match SipHeader::from_string(matc.as_str()) {
+                Some(matc) => match Header::from_string(matc.as_str()) {
                     Ok(header) => header,
                     Err(_) => continue,
                 },
@@ -89,7 +89,7 @@ impl SipRequest {
             };
 
             // If it's the content length header,
-            if header == SipHeader::ContentLength {
+            if header == Header::ContentLength {
                 content_length = value.parse().unwrap_or_default();
             }
             headers.insert(header, value.to_string());
@@ -120,7 +120,7 @@ impl SipRequest {
         }
 
         // All done!
-        Ok(SipRequest {
+        Ok(Request {
             method,
             headers,
             body,
