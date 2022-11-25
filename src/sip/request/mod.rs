@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fmt};
 
-use self::method::SipRequestMethod;
+use self::method::SipMethod;
 
 use super::header::SipHeader;
 
@@ -8,7 +8,7 @@ pub mod from_stream;
 pub mod method;
 
 pub struct SipRequest {
-    pub method: SipRequestMethod,
+    pub method: SipMethod,
     pub headers: HashMap<SipHeader, String>,
     pub body: Option<String>,
     pub address: String,

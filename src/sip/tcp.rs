@@ -4,6 +4,8 @@ use std::{
     thread,
 };
 
+use log::error;
+
 use super::{handler::handle_request, request::SipRequest};
 
 pub fn listen() {
@@ -20,9 +22,12 @@ pub fn listen() {
 fn handle_connection(mut stream: TcpStream) {
     loop {
         let request = SipRequest::from_stream(&mut &stream);
-
         let response = handle_request(request);
-        _ = stream.write_all(response.to_string().as_bytes());
-        _ = stream.flush();
+        if let Ok(response) = response {
+            let result = stream.write_all(response.to_string().as_bytes());
+            if result.is_err() {
+                error!("TCP send error");
+            }
+        }
     }
 }

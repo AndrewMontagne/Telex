@@ -25,21 +25,21 @@ impl fmt::Display for SipResponse {
 }
 
 impl SipResponse {
-    pub fn new(status: String, body: Option<String>) -> SipResponse {
+    pub fn new(status: String, body: Option<String>) -> Result<SipResponse, SimpleError> {
         let mut response = SipResponse {
             status,
             headers: HashMap::new(),
             body: None,
         };
-        _ = response.set_header(SipHeader::Date, SipHeader::generate(SipHeader::Date));
-        _ = response.set_header(SipHeader::Server, SipHeader::generate(SipHeader::Server));
+        response.set_header(SipHeader::Date, SipHeader::generate(SipHeader::Date))?;
+        response.set_header(SipHeader::Server, SipHeader::generate(SipHeader::Server))?;
         if let Some(body) = body {
-            _ = response.set_body(body);
+            response.set_body(body)?;
         } else {
-            _ = response.set_header(SipHeader::ContentLength, "0".to_string());
+            response.set_header(SipHeader::ContentLength, "0".to_string())?;
         }
 
-        response
+        Ok(response)
     }
 
     pub fn set_header(&mut self, header: SipHeader, value: String) -> Result<(), SimpleError> {
@@ -55,27 +55,16 @@ impl SipResponse {
         Ok(())
     }
 
-    pub fn copy_header_from_request(&mut self, header: SipHeader, request: &SipRequest) {
+    pub fn copy_header_from_request(
+        &mut self,
+        header: SipHeader,
+        request: &SipRequest,
+    ) -> Result<(), SimpleError> {
         if request.headers.contains_key(&header) {
-            _ = self.set_header(
-                header.clone(),
-                request.headers.get(&header).unwrap().clone(),
-            );
+            let value = request.headers.get(&header).unwrap().clone();
+            self.set_header(header, value)
+        } else {
+            Ok(())
         }
     }
 }
-
-/*
-SIP/2.0 489 Bad Event
-Via: SIP/2.0/UDP 10.42.0.3:58372;branch=z9hG4bKPj181065fe55e04afcb27eb870af4da564;received=10.42.0.3;rport=58372
-From: "andre" <sip:3001@bifrost.lan>;tag=a799d0636d494da6afc14250860cb8fe
-To: "andre" <sip:3001@bifrost.lan>;tag=as70866c73
-Call-ID: 167f03e3776a48a28c33ab2a2f7d8513
-CSeq: 1 PUBLISH
-Server: Asterisk PBX 17.9.4
-Allow: INVITE, ACK, CANCEL, OPTIONS, BYE, REFER, SUBSCRIBE, NOTIFY, INFO, PUBLISH, MESSAGE
-Supported: replaces, timer
-Content-Length: 0
-
-
-*/

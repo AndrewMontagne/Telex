@@ -1,11 +1,13 @@
 use std::{io::Cursor, net::UdpSocket};
 
+use log::error;
+
 use super::{handler::handle_request, request::SipRequest};
 
 pub fn listen() {
     let socket: UdpSocket = UdpSocket::bind("[::]:5060").expect("");
 
-    let mut buf = [0; 100000];
+    let mut buf = [0; 100_000];
 
     loop {
         let (amt, src) = socket.recv_from(&mut buf).unwrap();
@@ -14,7 +16,11 @@ pub fn listen() {
         let request = SipRequest::from_stream(&mut cursor);
 
         let response = handle_request(request);
-
-        _ = socket.send_to(response.to_string().as_bytes(), src);
+        if let Ok(response) = response {
+            let result = socket.send_to(response.to_string().as_bytes(), src);
+            if result.is_err() {
+                error!("UDP send error");
+            }
+        }
     }
 }

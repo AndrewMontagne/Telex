@@ -7,7 +7,7 @@ impl SipHeader {
         match self {
             Self::Date => Utc::now().to_rfc2822(),
             Self::Server => format!("Telex PBX v{}", env!("CARGO_PKG_VERSION")),
-            _ => "".to_string(),
+            _ => String::new(),
         }
     }
 }

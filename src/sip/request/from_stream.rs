@@ -8,7 +8,7 @@ use std::{
 
 use crate::sip::header::SipHeader;
 
-use super::{method::SipRequestMethod, SipRequest};
+use super::{SipMethod, SipRequest};
 
 lazy_static! {
     static ref REQUEST_LINE_REGEX: Regex = Regex::new(r"^([A-Z]+) (.+) SIP.2.0$").unwrap();
@@ -17,14 +17,16 @@ lazy_static! {
 
 impl SipRequest {
     pub fn from_stream(data: &mut impl Read) -> Result<SipRequest, SimpleError> {
-        let mut reader = BufReader::new(data);
+        let mut buf_reader = BufReader::new(data);
         let mut headers: HashMap<SipHeader, String> = HashMap::new();
         let mut body = None;
 
         // Ignore blank lines leading up to the request
         let mut request_line_str = String::new();
         while request_line_str.is_empty() {
-            _ = reader.read_line(&mut request_line_str).unwrap_or_default();
+            _ = buf_reader
+                .read_line(&mut request_line_str)
+                .unwrap_or_default();
             request_line_str = request_line_str.trim().to_string();
         }
 
@@ -37,7 +39,7 @@ impl SipRequest {
             Some(matc) => matc.as_str().to_string(),
             None => bail!("SANITY: Couldn't get the method from the request line"),
         };
-        let method = match SipRequestMethod::from_string(method_str) {
+        let method = match SipMethod::from_string(&method_str) {
             Ok(method) => method,
             Err(e) => return Err(e),
         };
@@ -53,7 +55,7 @@ impl SipRequest {
         loop {
             // Read the line from the stream
             let mut line = String::new();
-            _ = reader.read_line(&mut line).unwrap_or_default();
+            _ = buf_reader.read_line(&mut line).unwrap_or_default();
             line = line.trim_end().to_string();
 
             // Check to see if we've finished reading headers
@@ -101,7 +103,7 @@ impl SipRequest {
             // Keep reading until we have no bytes left
             while remaining_bytes > 0 {
                 let mut mini_buf = vec![0u8; remaining_bytes as usize];
-                let read = reader.read(&mut mini_buf);
+                let read = buf_reader.read(&mut mini_buf);
                 if let Ok(read) = read {
                     body_buf.append(&mut mini_buf);
                     remaining_bytes -= read;
@@ -121,8 +123,8 @@ impl SipRequest {
         Ok(SipRequest {
             method,
             headers,
-            address,
             body,
+            address,
         })
     }
 }

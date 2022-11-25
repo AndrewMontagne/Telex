@@ -55,7 +55,7 @@ impl SipHeader {
         }
     }
 
-    pub fn to_string_with_value(&self, value: String) {
+    pub fn to_string_with_value(&self, value: &String) {
         format!("{}: {}\r\n", self, value);
     }
 }

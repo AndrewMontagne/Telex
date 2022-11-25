@@ -11,5 +11,7 @@ opt-level = 3       # Optimize for speed.
 [dependencies]
 chrono = "0.4.23"
 lazy_static = "1.4.0"
+log = "0.4.17"
 regex = "1.7.0"
 simple-error = "0.2.3"
+simplelog = "0.12.0"
