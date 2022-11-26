@@ -3,7 +3,7 @@
 
 use std::thread;
 
-use log::{info, LevelFilter};
+use log::{LevelFilter, info};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 
 mod helpers;

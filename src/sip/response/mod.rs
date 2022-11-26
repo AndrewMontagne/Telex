@@ -4,40 +4,63 @@ use simple_error::SimpleError;
 
 use crate::strlit;
 
+use self::status::Status;
+
 use super::{header::Header, request::Request};
 
 pub mod status;
 
+#[derive(Debug)]
 pub struct Response {
-    pub status: String,
+    pub status: Status,
     pub headers: HashMap<Header, String>,
     pub body: Option<String>,
 }
 
 impl fmt::Display for Response {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        _ = write!(f, "SIP/2.0 {}\r\n", self.status);
-        for (key, value) in &self.headers {
-            _ = write!(f, "{}: {}\r\n", key.canonical_string(true), value);
+        // Don't print empty responses
+        if !matches!(self.status, Status::None) {
+            _ = write!(f, "SIP/2.0 {}\r\n", self.status);
+            for (key, value) in &self.headers {
+                _ = write!(f, "{}: {}\r\n", key.canonical_string(true), value);
+            }
+            if let Some(body) = &self.body {
+                _ = write!(f, "\r\n{}\r\n", body);
+            }
+            _ = write!(f, "\r\n");
         }
-        if let Some(body) = &self.body {
-            _ = write!(f, "\r\n{}\r\n", body);
-        }
-        _ = write!(f, "\r\n");
         Ok(())
     }
 }
 
 impl Response {
-    pub fn new(status: String, body: Option<String>) -> Result<Response, SimpleError> {
+    pub fn empty() -> Response {
+        let status = Status::None;
+        Response {
+            status,
+            headers: HashMap::new(),
+            body: None,
+        }
+    }
+
+    pub fn new(request: &Request, status: Status, body: Option<String>) -> Result<Response, SimpleError> {
         let mut response = Response {
             status,
             headers: HashMap::new(),
             body: None,
         };
-        response.set_header(Header::Date, Header::generate(Header::Date))?;
-        response.set_header(Header::Server, Header::generate(Header::Server))?;
-        response.set_header(Header::Server, Header::generate(Header::Allow))?;
+
+        response.copy_header_from_request(Header::CSeq, request)?;
+        response.copy_header_from_request(Header::From, request)?;
+        response.copy_header_from_request(Header::To, request)?;
+        response.copy_header_from_request(Header::CallID, request)?;
+        response.copy_header_from_request(Header::Via, request)?;
+
+        response.generate_header(Header::Date)?;
+        response.generate_header(Header::Server)?;
+        response.generate_header(Header::Allow)?;
+
         if let Some(body) = body {
             response.set_body(body)?;
         } else {
@@ -45,6 +68,11 @@ impl Response {
         }
 
         Ok(response)
+    }
+
+    pub fn generate_header(&mut self, header: Header) -> Result<(), SimpleError> {
+        let value = header.generate();
+        self.set_header(header, value)
     }
 
     pub fn set_header(&mut self, header: Header, value: String) -> Result<(), SimpleError> {

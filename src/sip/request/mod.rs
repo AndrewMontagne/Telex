@@ -7,6 +7,7 @@ use super::header::Header;
 pub mod from_stream;
 pub mod method;
 
+#[derive(Debug)]
 pub struct Request {
     pub method: Method,
     pub headers: HashMap<Header, String>,
