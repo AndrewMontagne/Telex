@@ -43,7 +43,11 @@ impl Response {
         response.copy_header_from_request(Header::From, request)?;
         response.copy_header_from_request(Header::To, request)?;
         response.copy_header_from_request(Header::CallID, request)?;
-        response.copy_header_from_request(Header::Via, request)?;
+
+        if request.headers.contains_key(&Header::Via) {
+            let via_in = request.headers.get(&Header::Via).unwrap().clone();
+            response.set_header(Header::Via, request.connection.via_header_response(via_in)?)?;
+        }
 
         response.generate_header(Header::Date)?;
         response.generate_header(Header::Server)?;

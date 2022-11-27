@@ -12,7 +12,7 @@ use crate::{
 use super::request::{method::Method, Request};
 
 pub fn handle_request(mut request: Request) -> Result<(), SimpleError> {
-    info!("{} Request", request.method);
+    info!("<= {} Request", request.method);
     if matches!(request.method, Method::Register) {
         trace!("{}", request);
 
@@ -33,12 +33,17 @@ pub fn handle_request(mut request: Request) -> Result<(), SimpleError> {
         }
     } else if matches!(request.method, Method::Invite) {
         let mut trying = Response::new(&request, Status::Trying, None)?;
-        trying.set_header(Header::Contact, request.headers.get(&Header::To).unwrap().to_string())?;
+        trying.set_header(Header::Contact, strlit!("<sip:3000@172.19.195.144:5060>"))?;
         request.connection.send_response(trying)?;
         thread::sleep(time::Duration::from_millis(1000));
         let mut ringing = Response::new(&request, Status::Ringing, None)?;
-        ringing.set_header(Header::Contact, request.headers.get(&Header::To).unwrap().to_string())?;
+        ringing.set_header(Header::Contact, strlit!("<sip:3000@172.19.195.144:5060>"))?;
+        ringing.set_header(Header::To, strlit!("<sip:3000@172.19.195.144>;tag=as2eabdc6d"))?;
         request.connection.send_response(ringing)?;
+        thread::sleep(time::Duration::from_millis(5000));
+        let mut decline = Response::new(&request, Status::Decline, None)?;
+        decline.set_header(Header::Contact, strlit!("<sip:3000@172.19.195.144:5060>"))?;
+        request.connection.send_response(decline)?;
     } else if ! matches!(request.method, Method::Ack) {
         let response = match request.method {
             Method::Cancel | Method:: Options => Response::new(&request, Status::OK, None),

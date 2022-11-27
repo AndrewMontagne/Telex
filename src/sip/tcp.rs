@@ -1,16 +1,16 @@
 use std::{
     io::Write,
-    net::{TcpListener, TcpStream},
+    net::{TcpListener, TcpStream, SocketAddr},
     thread,
 };
 
 use log::info;
 use simple_error::{bail, SimpleError};
 
-use super::{handler::handle_request, request::Request, state::connection::{Connection}, response::Response};
+use super::{handler::handle_request, request::Request, state::connection::Connection, response::Response};
 
 pub fn listen() {
-    let listener = TcpListener::bind("[::]:5060").unwrap();
+    let listener = TcpListener::bind("172.19.195.144:5060").unwrap();
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
@@ -35,15 +35,18 @@ fn handle_connection(stream: &mut TcpStream) {
 
 pub struct ClientConnection {
     stream: TcpStream,
-    remote_name: String,
+    remote: SocketAddr,
+    local: SocketAddr,
 }
 
 impl ClientConnection {
     pub fn new(stream: TcpStream) -> ClientConnection {
-        let remote_name = stream.peer_addr().unwrap().to_string();
+        let remote = stream.peer_addr().unwrap();
+        let local = stream.local_addr().unwrap();
         ClientConnection {
             stream,
-            remote_name
+            remote,
+            local,
         }
     }
 
@@ -65,7 +68,10 @@ impl Connection for ClientConnection {
         info!("=> {} Response", response.status);
         self.send_to_socket(response.to_string().as_str())
     }
-    fn remote_name(&self) -> String {
-        self.remote_name.clone()
+    fn local_address(&self) -> SocketAddr {
+        self.local
+    }
+    fn remote_address(&self) -> SocketAddr {
+        self.remote
     }
 }
