@@ -6,7 +6,7 @@ use std::{
     io::{BufRead, BufReader, Read},
 };
 
-use crate::sip::header::Header;
+use crate::sip::{header::Header, state::connection::{Connection}};
 
 use super::{Method, Request};
 
@@ -16,7 +16,7 @@ lazy_static! {
 }
 
 impl Request {
-    pub fn from_stream(data: &mut impl Read) -> Result<Request, SimpleError> {
+    pub fn from_stream(data: &mut impl Read, connection: Box<dyn Connection>) -> Result<Request, SimpleError> {
         let mut buf_reader = BufReader::new(data);
         let mut headers: HashMap<Header, String> = HashMap::new();
         let mut body = None;
@@ -125,6 +125,7 @@ impl Request {
             headers,
             body,
             address,
+            connection,
         })
     }
 }

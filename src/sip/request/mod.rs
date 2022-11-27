@@ -2,17 +2,18 @@ use std::{collections::HashMap, fmt};
 
 use self::method::Method;
 
-use super::header::Header;
+use super::{header::Header, state::connection::Connection};
 
 pub mod from_stream;
 pub mod method;
 
-#[derive(Debug)]
+
 pub struct Request {
     pub method: Method,
     pub headers: HashMap<Header, String>,
     pub body: Option<String>,
     pub address: String,
+    pub connection: Box<dyn Connection>,
 }
 
 impl fmt::Display for Request {

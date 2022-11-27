@@ -19,31 +19,19 @@ pub struct Response {
 
 impl fmt::Display for Response {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // Don't print empty responses
-        if !matches!(self.status, Status::None) {
-            _ = write!(f, "SIP/2.0 {}\r\n", self.status);
-            for (key, value) in &self.headers {
-                _ = write!(f, "{}: {}\r\n", key.canonical_string(true), value);
-            }
-            if let Some(body) = &self.body {
-                _ = write!(f, "\r\n{}\r\n", body);
-            }
-            _ = write!(f, "\r\n");
+        _ = write!(f, "SIP/2.0 {}\r\n", self.status);
+        for (key, value) in &self.headers {
+            _ = write!(f, "{}: {}\r\n", key.canonical_string(false), value);
         }
+        if let Some(body) = &self.body {
+            _ = write!(f, "\r\n{}\r\n", body);
+        }
+        _ = write!(f, "\r\n");
         Ok(())
     }
 }
 
 impl Response {
-    pub fn empty() -> Response {
-        let status = Status::None;
-        Response {
-            status,
-            headers: HashMap::new(),
-            body: None,
-        }
-    }
-
     pub fn new(request: &Request, status: Status, body: Option<String>) -> Result<Response, SimpleError> {
         let mut response = Response {
             status,

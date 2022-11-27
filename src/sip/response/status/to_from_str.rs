@@ -5,8 +5,6 @@ use super::Status;
 impl fmt::Display for Status {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Status::None => write!(f, "No Response"),
-
             // Informational
             Status::Trying => write!(f, "100 Trying"),
             Status::Ringing => write!(f, "180 Ringing"),

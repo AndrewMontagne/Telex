@@ -4,9 +4,6 @@ pub mod to_from_str;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum Status {
-    // No response, send no packets
-    None = 0,
-
     // Informational
     Trying = 100,
     Ringing = 180,
