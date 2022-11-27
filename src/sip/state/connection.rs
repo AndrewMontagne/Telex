@@ -11,15 +11,6 @@ lazy_static! {
     pub static ref VIA_VALUE_REGEX: Regex = Regex::new(r"^^([^;]+);(.*)$").unwrap();
 }
 
-fn pretty_print_address(address: SocketAddr) -> String{
-    match address.ip() {
-        IpAddr::V4(address) => {
-            let octets = address.octets();
-            format!("{}.{}.{}.{}", octets[0], octets[1], octets[2], octets[3])
-        },
-        IpAddr::V6(address) => address.to_string()
-    }
-}
 pub trait Connection {
     fn send_request(&mut self, request: Request) -> Result<(), SimpleError>;
     fn send_response(&mut self, response: Response) -> Result<(), SimpleError>;
@@ -40,7 +31,7 @@ pub trait Connection {
                 let key = *keyvalue.first().unwrap();
                 let value: String = match key {
                     "received" => {
-                        format!("received={}", pretty_print_address(self.local_address()))
+                        format!("received={}", self.local_address().ip())
                     },
                     "rport" => {
                         format!("rport={}", self.remote_address().port())

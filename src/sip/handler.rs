@@ -12,7 +12,7 @@ use crate::{
 use super::request::{method::Method, Request};
 
 pub fn handle_request(mut request: Request) -> Result<(), SimpleError> {
-    info!("<= {} Request", request.method);
+    info!("<= {} Request from {}", request.method, request.connection.remote_address().ip());
     if matches!(request.method, Method::Register) {
         trace!("{}", request);
 
