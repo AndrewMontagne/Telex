@@ -1,5 +1,6 @@
-use std::{net::{SocketAddr, IpAddr}};
+use std::net::SocketAddr;
 
+use log::info;
 use regex::Regex;
 use simple_error::{SimpleError, bail};
 
@@ -12,8 +13,15 @@ lazy_static! {
 }
 
 pub trait Connection {
-    fn send_request(&mut self, request: Request) -> Result<(), SimpleError>;
-    fn send_response(&mut self, response: Response) -> Result<(), SimpleError>;
+    fn send_request(&mut self, request: Request) -> Result<(), SimpleError> {
+        info!("=> {} Request", request.method);
+        self.send_to_socket(request.to_string().as_str())
+    }
+    fn send_response(&mut self, response: Response) -> Result<(), SimpleError> {
+        info!("=> {} Response", response.status);
+        self.send_to_socket(response.to_string().as_str())
+    }
+    fn send_to_socket(&mut self, data: &str) -> Result<(), SimpleError>;
     fn local_address(&self) -> SocketAddr;
     fn remote_address(&self) -> SocketAddr;
     fn via_header_response(&self, via_request: String) -> Result<String, SimpleError> {

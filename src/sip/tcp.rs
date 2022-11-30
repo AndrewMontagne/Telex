@@ -4,13 +4,12 @@ use std::{
     thread,
 };
 
-use log::info;
 use simple_error::{bail, SimpleError};
 
-use super::{handler::handle_request, request::Request, state::connection::Connection, response::Response};
+use super::{handler::handle_request, request::Request, state::connection::Connection};
 
 pub fn listen() {
-    let listener = TcpListener::bind("172.19.195.144:5060").unwrap();
+    let listener = TcpListener::bind("[::]:5060").unwrap();
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
@@ -49,29 +48,20 @@ impl ClientConnection {
             local,
         }
     }
+}
 
+impl Connection for ClientConnection {
+    fn local_address(&self) -> SocketAddr {
+        self.local
+    }
+    fn remote_address(&self) -> SocketAddr {
+        self.remote
+    }
     fn send_to_socket(&mut self, data: &str) -> Result<(), SimpleError>  {
         let result = self.stream.write_all(data.as_bytes());
         match result {
             Ok(_) => Ok(()),
             Err(_) => bail!("Error writing to socket"),
         }
-    }
-}
-
-impl Connection for ClientConnection {
-    fn send_request(&mut self, request: Request) -> Result<(), SimpleError> {
-        info!("=> {} Request", request.method);
-        self.send_to_socket(request.to_string().as_str())
-    }
-    fn send_response(&mut self, response: Response) -> Result<(), SimpleError> {
-        info!("=> {} Response", response.status);
-        self.send_to_socket(response.to_string().as_str())
-    }
-    fn local_address(&self) -> SocketAddr {
-        self.local
-    }
-    fn remote_address(&self) -> SocketAddr {
-        self.remote
     }
 }

@@ -4,10 +4,10 @@ use simple_error::{SimpleError, bail};
 
 use lazy_static::lazy_static;
 
-use super::{handler::handle_request, request::Request, state::connection::Connection, response::Response};
+use super::{handler::handle_request, request::Request, state::connection::Connection};
 
 lazy_static! {
-    static ref UDP_SOCKET: UdpSocket = UdpSocket::bind("172.19.195.144:5060").expect("");
+    static ref UDP_SOCKET: UdpSocket = UdpSocket::bind("145.239.7.56:5060").expect("");
 }
 
 pub fn listen() {
@@ -40,27 +40,20 @@ impl ClientConnection {
             local
         }
     }
-
-    fn send_to_socket(&self, data: &str) -> Result<(), SimpleError>  {
-        let result = UDP_SOCKET.send_to(data.to_string().as_bytes(), self.remote);
-        match result {
-            Ok(_) => Ok(()),
-            Err(_) => bail!("Error writing to socket"),
-        }
-    }
 }
 
 impl Connection for ClientConnection {
-    fn send_request(&mut self, request: Request) -> Result<(), SimpleError> {
-        self.send_to_socket(request.to_string().as_str())
-    }
-    fn send_response(&mut self, response: Response) -> Result<(), SimpleError> {
-        self.send_to_socket(response.to_string().as_str())
-    }
     fn local_address(&self) -> SocketAddr {
         self.local
     }
     fn remote_address(&self) -> SocketAddr {
         self.remote
+    }
+    fn send_to_socket(&mut self, data: &str) -> Result<(), SimpleError>  {
+        let result = UDP_SOCKET.send_to(data.to_string().as_bytes(), self.remote);
+        match result {
+            Ok(_) => Ok(()),
+            Err(_) => bail!("Error writing to socket"),
+        }
     }
 }
